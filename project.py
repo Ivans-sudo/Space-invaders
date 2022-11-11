@@ -96,6 +96,7 @@ def run():
     enemys_y = []
     bullets = []
     create_army(screen, enemys_y)
+    are_you_winnin_sun = False
     while (True):
         clock.tick(fps)
         for event in pygame.event.get():
@@ -117,10 +118,21 @@ def run():
                     gun.move_left = False
         gun.update_gun_position()
         screen.fill(background_color)
+        flag = False
         for enemys in enemys_y:
             for enemy in enemys:
                 enemy.update_enemy_position()
                 enemy.draw_enemy()
+                if enemy.rect.bottom > gun.rect.top:
+                    explosion.play()
+                    game_over.play()
+                    print('proser')
+                    flag = 1
+                    break
+            if flag:
+                break
+        if flag:
+            break    
         for bullet in bullets:
             bullet.update_bullet_position()
             for enemys in enemys_y:
