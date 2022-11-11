@@ -84,7 +84,10 @@ def run():
     pygame.init()
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption('Space Invaders')
-    pygame.mixer.music.set_volume(0.025)
+    pygame.mixer.music.set_volume(0.33)
+    laser = pygame.mixer.Sound('laser.mp3')
+    game_over = pygame.mixer.Sound('game_over.mp3')
+    explosion = pygame.mixer.Sound('explosion.mp3')
     pygame.mixer.music.load('bgmusic.mp3')
     pygame.mixer.music.play(-1)
     clock = pygame.time.Clock()
@@ -104,6 +107,7 @@ def run():
                 if event.key == pygame.K_LEFT:
                     gun.move_left = True
                 if event.key == pygame.K_UP:
+                    laser.play()
                     new_bullet = Bullet(screen, gun)
                     bullets.append(new_bullet)
             if event.type == pygame.KEYUP:
@@ -119,7 +123,6 @@ def run():
                 enemy.draw_enemy()
         for bullet in bullets:
             bullet.update_bullet_position()
-
             for enemys in enemys_y:
                 for enemy in enemys:
                     if (bullet.rect.top < enemy.rect.bottom and \
@@ -129,9 +132,7 @@ def run():
                         #-------------------------------------
                         enemys.remove(enemy)
                         bullets.remove(bullet)
-
             bullet.draw_bullet()
-            
             if bullet.rect.bottom < 0:
                 bullets.remove(bullet)
         gun.draw_gun()
