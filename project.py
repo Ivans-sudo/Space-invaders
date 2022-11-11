@@ -126,13 +126,12 @@ def run():
                 if enemy.rect.bottom > gun.rect.top:
                     explosion.play()
                     game_over.play()
-                    print('proser')
                     flag = 1
                     break
             if flag:
                 break
         if flag:
-            break    
+            break
         for bullet in bullets:
             bullet.update_bullet_position()
             for enemys in enemys_y:
@@ -149,5 +148,12 @@ def run():
                 bullets.remove(bullet)
         gun.draw_gun()
         pygame.display.update()
-
+    while(True):
+        #тодо нажмите пробел чтобы выйти
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    sys.exit()
 run()
