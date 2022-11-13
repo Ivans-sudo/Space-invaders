@@ -47,8 +47,9 @@ class Bullet():
         pygame.draw.rect(self.screen, self.color, self.rect)
 
 class Enemy():
-    def __init__(self, screen, type):
+    def __init__(self, screen, type, enemy_number):
         self.screen = screen
+        self.number = enemy_number
         if type == 1:
                self.image = pygame.image.load('enemy1.png') 
         if type == 2:
@@ -60,28 +61,36 @@ class Enemy():
         self.rect.y = self.rect.height
         self.x = float(self.rect.x)
         self.y = float(self.rect.y)
-        self.speed = 0.2
+        self.speed_y = 0.1
+        self.speed_x = 0.5
+        self.goleft = 1
 
     def draw_enemy(self):
         self.screen.blit(self.image, self.rect)
 
-    def update_enemy_position(self):
-        self.y += self.speed
-        self.rect.y = self.y
+    def update_enemy_position(self, enemy, number_of_enemys_x):
+        if enemy.goleft:
+            enemy.x += enemy.speed_x
+            enemy.rect.x = enemy.x
+            if enemy.rect.right + enemy.rect.width * (number_of_enemys_x - enemy.number - 1) > width:
+                enemy.goleft = 0
+        else:
+            enemy.x -= enemy.speed_x
+            enemy.rect.x = enemy.x
+            if enemy.rect.left - enemy.rect.width * (enemy.number) <= 0:
+                enemy.goleft = 1
+        enemy.y += enemy.speed_y
+        enemy.rect.y = enemy.y
 
-def create_army(screen, enemys_y):
-    enemy = Enemy(screen, 1)
-    enemy_width = enemy.rect.width
-    enemy_height = enemy.rect.height
-    number_of_enemys_x = int((width - 2 * enemy_width) / enemy_width)
-    number_of_enemys_y = int((height / 2) / enemy_height)
+def create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y):
+    enemy = Enemy(screen, 1, 0)
     for enemys_number in range(number_of_enemys_y):
         enemys = []
         type = random.choice([1, 2, 3])
         for enemy_number in range(number_of_enemys_x):
-            enemy = Enemy(screen, type)
-            enemy.x = (1 + enemy_number) * enemy_width
-            enemy.y = (1 + enemys_number) * enemy_height 
+            enemy = Enemy(screen, type, enemy_number)
+            enemy.x = (1 + enemy_number) * enemy.rect.width
+            enemy.y = (1 + enemys_number) * enemy.rect.height 
             enemy.rect.x = enemy.x
             enemy.rect.y = enemy.y
             enemys.append(enemy)
@@ -102,7 +111,10 @@ def run():
     gun = Gun(screen)
     enemys_y = []
     bullets = []
-    create_army(screen, enemys_y)
+    enemy = Enemy(screen, 1, 0)
+    number_of_enemys_x = int((width - 2 * enemy.rect.width) / enemy.rect.width)
+    number_of_enemys_y = int((height / 2) / enemy.rect.height)
+    create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y)
     are_you_winnin_sun = False
     while (True):
         clock.tick(fps)
@@ -128,7 +140,7 @@ def run():
         flag = False
         for enemys in enemys_y:
             for enemy in enemys:
-                enemy.update_enemy_position()
+                enemy.update_enemy_position(enemy, number_of_enemys_x)
                 enemy.draw_enemy()
                 if enemy.rect.bottom > gun.rect.top:
                     explosion.play()
