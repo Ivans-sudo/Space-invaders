@@ -32,7 +32,7 @@ class Bullet():
     def __init__(self, screen, gun):
         self.screen = screen
         self.rect = pygame.Rect(0, 0, 2, 12)
-        self.color = 255, 255, 255
+        self.color = 30, 230, 86
         self.speed = 0.75
         self.rect.centerx = gun.rect.centerx
         self.rect.top = gun.rect.top
@@ -72,12 +72,12 @@ class Enemy():
         if enemy.goleft:
             enemy.x += enemy.speed_x
             enemy.rect.x = enemy.x
-            if enemy.rect.right + enemy.rect.width * (number_of_enemys_x - enemy.number - 1) > width:
+            if enemy.rect.right + enemy.rect.width * (number_of_enemys_x - enemy.number - 1) >= width:
                 enemy.goleft = 0
         else:
             enemy.x -= enemy.speed_x
             enemy.rect.x = enemy.x
-            if enemy.rect.left - enemy.rect.width * (enemy.number) <= 0:
+            if enemy.rect.left - enemy.rect.width * enemy.number <= 0:
                 enemy.goleft = 1
         enemy.y += enemy.speed_y
         enemy.rect.y = enemy.y
@@ -86,7 +86,7 @@ def create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y):
     enemy = Enemy(screen, 1, 0)
     for enemys_number in range(number_of_enemys_y):
         enemys = []
-        type = random.choice([1, 2, 3])
+        type = random.choice((1, 2, 3))
         for enemy_number in range(number_of_enemys_x):
             enemy = Enemy(screen, type, enemy_number)
             enemy.x = (1 + enemy_number) * enemy.rect.width
@@ -157,8 +157,8 @@ def run():
                 for enemy in enemys:
                     if (bullet.rect.top < enemy.rect.bottom and \
                         bullet.rect.top > enemy.rect.top and \
-                        bullet.rect.left > enemy.rect.left and \
-                        bullet.rect.right < enemy.rect.right):
+                        bullet.rect.left > enemy.rect.left + 2 and \
+                        bullet.rect.right < enemy.rect.right - 2):
                         #-------------------------------------
                         enemys.remove(enemy)
                         bullets.remove(bullet)
