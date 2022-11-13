@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 
 width = 700
 height = 800
@@ -46,9 +47,14 @@ class Bullet():
         pygame.draw.rect(self.screen, self.color, self.rect)
 
 class Enemy():
-    def __init__(self, screen):
+    def __init__(self, screen, type):
         self.screen = screen
-        self.image = pygame.image.load('enemy1.png')
+        if type == 1:
+               self.image = pygame.image.load('enemy1.png') 
+        if type == 2:
+               self.image = pygame.image.load('enemy2.png') 
+        if type == 3:
+               self.image = pygame.image.load('enemy3.png') 
         self.rect = self.image.get_rect()
         self.rect.x = self.rect.width
         self.rect.y = self.rect.height
@@ -64,15 +70,16 @@ class Enemy():
         self.rect.y = self.y
 
 def create_army(screen, enemys_y):
-    enemy = Enemy(screen)
+    enemy = Enemy(screen, 1)
     enemy_width = enemy.rect.width
     enemy_height = enemy.rect.height
     number_of_enemys_x = int((width - 2 * enemy_width) / enemy_width)
     number_of_enemys_y = int((height / 2) / enemy_height)
     for enemys_number in range(number_of_enemys_y):
         enemys = []
+        type = random.choice([1, 2, 3])
         for enemy_number in range(number_of_enemys_x):
-            enemy = Enemy(screen)
+            enemy = Enemy(screen, type)
             enemy.x = (1 + enemy_number) * enemy_width
             enemy.y = (1 + enemys_number) * enemy_height 
             enemy.rect.x = enemy.x
