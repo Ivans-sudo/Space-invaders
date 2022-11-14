@@ -5,6 +5,12 @@ import random
 width = 700
 height = 750
 fps = 144
+max_probability_of_shot = 1000
+enemy_speed_x = 0.5
+enemy_speed_y = 0.1
+gun_speed_x = 0.7
+bullet_speed = 5
+enemy_bullet_speed = 1
 
 class Gun():
     def __init__(self, screen):
@@ -23,9 +29,9 @@ class Gun():
 
     def update_gun_position(self):
         if self.move_right and self.rect.right < self.screen_rect.right:
-            self.center += 0.7
+            self.center += gun_speed_x
         if self.move_left and self.rect.left > self.screen_rect.left:
-            self.center -= 0.7
+            self.center -= gun_speed_x
         self.rect.centerx = self.center
 
 class Bullet():
@@ -33,7 +39,7 @@ class Bullet():
         self.screen = screen
         self.rect = pygame.Rect(0, 0, 2, 12)
         self.color = 30, 230, 86
-        self.speed = 5
+        self.speed = bullet_speed
         self.rect.centerx = gun.rect.centerx
         self.rect.top = gun.rect.top
         self.y = float(self.rect.y)
@@ -51,7 +57,7 @@ class EnemyBullet():
         self.screen = screen
         self.rect = pygame.Rect(0, 0, 2, 12)
         self.color = 255, 255, 255
-        self.speed = 1
+        self.speed = enemy_bullet_speed
         self.rect.centerx = enemy.rect.centerx
         self.rect.top = enemy.rect.bottom
         self.y = float(self.rect.y)
@@ -79,24 +85,24 @@ class Enemy():
         self.rect.y = self.rect.height
         self.x = float(self.rect.x)
         self.y = float(self.rect.y)
-        self.speed_y = 0.1
-        self.speed_x = 0.5
-        self.goleft = 1
+        self.speed_y = enemy_speed_y
+        self.speed_x = enemy_speed_x
+        self.can_go_left = True
 
     def draw_enemy(self):
         self.screen.blit(self.image, self.rect)
 
     def update_enemy_position(self, enemy, number_of_enemys_x):
-        if enemy.goleft:
+        if enemy.can_go_left:
             enemy.x += enemy.speed_x
             enemy.rect.x = enemy.x
             if enemy.rect.right + enemy.rect.width * (number_of_enemys_x - enemy.number - 1) >= width:
-                enemy.goleft = 0
+                enemy.can_go_left = False
         else:
             enemy.x -= enemy.speed_x
             enemy.rect.x = enemy.x
             if enemy.rect.left - enemy.rect.width * enemy.number <= 0:
-                enemy.goleft = 1
+                enemy.can_go_left = True
         enemy.y += enemy.speed_y
         enemy.rect.y = enemy.y
 
@@ -164,7 +170,7 @@ def run():
             for enemy in enemys:
                 enemy.update_enemy_position(enemy, number_of_enemys_x)
                 enemy.draw_enemy()
-                probability_monster_shot = random.choice(range(1, 5000))
+                probability_monster_shot = random.choice(range(1, max_probability_of_shot))
                 if probability_monster_shot == 1:
                     monster_laser.play()
                     new_enemy_bullet = EnemyBullet(screen, enemy)
@@ -193,6 +199,7 @@ def run():
             bullet.draw_bullet()
             if bullet.rect.bottom < 0:
                 bullets.remove(bullet)
+
         for enemy_bullet in enemy_bullets:
             enemy_bullet.update_bullet_position()
             x = enemy_bullet.rect.centerx - gun.rect.left
