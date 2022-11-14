@@ -3,7 +3,7 @@ import sys
 import random
 
 width = 700
-height = 800
+height = 750
 fps = 144
 
 class Gun():
@@ -27,19 +27,37 @@ class Gun():
         if self.move_left and self.rect.left > self.screen_rect.left:
             self.center -= 0.7
         self.rect.centerx = self.center
-        
+
 class Bullet():
     def __init__(self, screen, gun):
         self.screen = screen
         self.rect = pygame.Rect(0, 0, 2, 12)
         self.color = 30, 230, 86
-        self.speed = 0.75
+        self.speed = 5
         self.rect.centerx = gun.rect.centerx
         self.rect.top = gun.rect.top
         self.y = float(self.rect.y)
 
     def update_bullet_position(self):
         self.y -= self.speed
+        self.rect.y = self.y
+        self.speed += 0.005
+
+    def draw_bullet(self):
+        pygame.draw.rect(self.screen, self.color, self.rect)
+
+class EnemyBullet():
+    def __init__(self, screen, enemy):
+        self.screen = screen
+        self.rect = pygame.Rect(0, 0, 2, 12)
+        self.color = 255, 255, 255
+        self.speed = 1
+        self.rect.centerx = enemy.rect.centerx
+        self.rect.top = enemy.rect.bottom
+        self.y = float(self.rect.y)
+
+    def update_bullet_position(self):
+        self.y += self.speed
         self.rect.y = self.y
         self.speed += 0.005
 
@@ -102,6 +120,7 @@ def run():
     pygame.display.set_caption('Space Invaders')
     pygame.mixer.music.set_volume(0.33)
     laser = pygame.mixer.Sound('laser.mp3')
+    monster_laser = pygame.mixer.Sound('monster_laser.mp3')
     game_over = pygame.mixer.Sound('game_over.mp3')
     explosion = pygame.mixer.Sound('explosion.mp3')
     pygame.mixer.music.load('bgmusic.mp3')
@@ -111,11 +130,13 @@ def run():
     gun = Gun(screen)
     enemys_y = []
     bullets = []
+    enemy_bullets = []
     enemy = Enemy(screen, 1, 0)
     number_of_enemys_x = int((width - 2 * enemy.rect.width) / enemy.rect.width)
     number_of_enemys_y = int((height / 2) / enemy.rect.height)
     create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y)
     are_you_winnin_sun = False
+
     while (True):
         clock.tick(fps)
         for event in pygame.event.get():
@@ -138,10 +159,16 @@ def run():
         gun.update_gun_position()
         screen.fill(background_color)
         flag = False
+
         for enemys in enemys_y:
             for enemy in enemys:
                 enemy.update_enemy_position(enemy, number_of_enemys_x)
                 enemy.draw_enemy()
+                probability_monster_shot = random.choice(range(1, 5000))
+                if probability_monster_shot == 1:
+                    monster_laser.play()
+                    new_enemy_bullet = EnemyBullet(screen, enemy)
+                    enemy_bullets.append(new_enemy_bullet)
                 if enemy.rect.bottom > gun.rect.top:
                     explosion.play()
                     game_over.play()
@@ -151,6 +178,7 @@ def run():
                 break
         if flag:
             break
+
         for bullet in bullets:
             bullet.update_bullet_position()
             for enemys in enemys_y:
@@ -165,8 +193,33 @@ def run():
             bullet.draw_bullet()
             if bullet.rect.bottom < 0:
                 bullets.remove(bullet)
+        for enemy_bullet in enemy_bullets:
+            enemy_bullet.update_bullet_position()
+            x = enemy_bullet.rect.centerx - gun.rect.left
+            distance_to_gun = height - enemy_bullet.rect.bottom
+            if (distance_to_gun <= 0.05 * x * x + 9 and x > 0 and x < 24):
+                explosion.play()
+                game_over.play()
+                flag = 1
+                break
+            if (distance_to_gun <= 43 and x >= 24 and x < 28):
+                explosion.play()
+                game_over.play()
+                flag = 1
+                break
+            if (distance_to_gun <=  0.05 * (x - 50) * (x - 50) + 9 and x >= 28 and x < 50):
+                explosion.play()
+                game_over.play()
+                flag = 1
+                break
+            if enemy_bullet.rect.bottom > height:
+                enemy_bullets.remove(enemy_bullet)
+            enemy_bullet.draw_bullet()
+        if flag:
+            break
         gun.draw_gun()
         pygame.display.update()
+
     while(True):
         #тодо нажмите пробел чтобы выйти
         for event in pygame.event.get():
