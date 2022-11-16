@@ -1,5 +1,4 @@
 import pygame
-import sys
 import random
 
 width = 700
@@ -7,7 +6,7 @@ height = 750
 fps = 120
 max_probability_of_shot = 1000
 enemy_speed_x = 0.5
-enemy_speed_y = 0.1
+enemy_speed_y = 0.0
 gun_speed_x = 0.7
 bullet_speed = 5
 enemy_bullet_speed = 1
@@ -111,9 +110,11 @@ class EnemyBullet():
 
 
 class Enemy():
-    def __init__(self, screen, type, enemy_number):
+    def __init__(self, screen, type, enemy_x_default_position):
+        self.max_right = 1
+        self.max_left = 1
+        self.enemy_x_default_position = enemy_x_default_position
         self.screen = screen
-        self.number = enemy_number
         if type == 1:
             self.image = pygame.image.load('enemy1.png')
         if type == 2:
@@ -132,19 +133,26 @@ class Enemy():
     def draw_enemy(self):
         self.screen.blit(self.image, self.rect)
 
-    def update_enemy_position(self, enemy, number_of_enemys_x):
-        if enemy.can_go_left:
-            enemy.x += enemy.speed_x
-            enemy.rect.x = enemy.x
-            if enemy.rect.right + enemy.rect.width * (number_of_enemys_x - enemy.number - 1) >= width:
-                enemy.can_go_left = False
+    def update_enemy_position(self):
+        if self.can_go_left:
+            self.x += self.speed_x
+            self.rect.x = self.x
+            if self.rect.x >= self.enemy_x_default_position + self.max_right * self.rect.width:
+                self.can_go_left = False
         else:
-            enemy.x -= enemy.speed_x
-            enemy.rect.x = enemy.x
-            if enemy.rect.left - enemy.rect.width * enemy.number <= 0:
-                enemy.can_go_left = True
-        enemy.y += enemy.speed_y
-        enemy.rect.y = enemy.y
+            self.x -= self.speed_x
+            self.rect.x = self.x
+            if self.rect.x <= self.enemy_x_default_position - self.max_left * self.rect.width:
+                self.can_go_left = True
+        self.y += self.speed_y
+        self.rect.y = self.y
+
+    def shoot(self, screen, enemy_bullets, monster_laser):
+        probability_monster_shot = random.choice(range(1, max_probability_of_shot))
+        if probability_monster_shot == 1:
+            monster_laser.play()
+            new_enemy_bullet = EnemyBullet(screen, self)
+            enemy_bullets.append(new_enemy_bullet)
 
 
 def create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y):
@@ -153,7 +161,7 @@ def create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y):
         enemys = []
         type = random.choice((1, 2, 3))
         for enemy_number in range(number_of_enemys_x):
-            enemy = Enemy(screen, type, enemy_number)
+            enemy = Enemy(screen, type, (1 + enemy_number) * enemy.rect.width)
             enemy.x = (1 + enemy_number) * enemy.rect.width
             enemy.y = (1 + enemys_number) * enemy.rect.height
             enemy.rect.x = enemy.x
@@ -211,15 +219,17 @@ def run():
     number_of_enemys_y = int((height / 2) / enemy.rect.height)
     number_of_enemys = number_of_enemys_x * number_of_enemys_y
     create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y)
+    right_column = number_of_enemys_x
+    left_column = 1
 
     while (True):
         clock.tick(fps)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    sys.exit()
+                    exit()
                 if event.key == pygame.K_RIGHT:
                     gun.move_right = True
                 if event.key == pygame.K_LEFT:
@@ -241,15 +251,17 @@ def run():
         flag_shoot = False
         flag_range = False
 
+        number_in_left_column = 0
+        number_in_right_column = 0
         for enemys in enemys_y:
             for enemy in enemys:
-                enemy.update_enemy_position(enemy, number_of_enemys_x)
+                if enemy.enemy_x_default_position == right_column * enemy.rect.width:
+                    number_in_right_column += 1
+                if enemy.enemy_x_default_position == left_column * enemy.rect.width:
+                    number_in_left_column += 1
+                enemy.update_enemy_position()
                 enemy.draw_enemy()
-                probability_monster_shot = random.choice(range(1, max_probability_of_shot))
-                if probability_monster_shot == 1:
-                    monster_laser.play()
-                    new_enemy_bullet = EnemyBullet(screen, enemy)
-                    enemy_bullets.append(new_enemy_bullet)
+                enemy.shoot(screen, enemy_bullets, monster_laser)
                 if enemy.rect.bottom > gun.rect.top:
                     explosion.play()
                     game_over.play()
@@ -257,6 +269,16 @@ def run():
                     break
             if flag_range:
                 break
+        if number_in_right_column == 0:
+            for enemys in enemys_y:
+                for enemy in enemys:
+                    enemy.max_right += 1
+            right_column -= 1
+        if number_in_left_column == 0:
+            for enemys in enemys_y:
+                for enemy in enemys:
+                    enemy.max_left += 1
+            left_column += 1
 
         for bullet in bullets:
             is_removed = False
@@ -334,14 +356,16 @@ def run():
             while (True):
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        sys.exit()
+                        exit()
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_SPACE:
-                            sys.exit()
+                            exit()
                         if event.key == pygame.K_r:
                             run()
         if number_of_enemys == 0:
             next_level.play()
+            right_column = number_of_enemys_x
+            left_column = 1
             for enemys in enemys_y:
                 enemys.clear()
             enemys_y.clear()
