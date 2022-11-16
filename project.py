@@ -4,7 +4,7 @@ import random
 
 width = 700
 height = 750
-fps = 144
+fps = 120
 max_probability_of_shot = 1000
 enemy_speed_x = 0.5
 enemy_speed_y = 0.1
@@ -261,7 +261,7 @@ def run():
         for bullet in bullets:
             is_removed = False
             bullet.update_bullet_position()
-            if bullet.rect.bottom < 0:
+            if bullet.rect.top < 0:
                 bullets.remove(bullet)
                 continue
             for enemys in enemys_y:
