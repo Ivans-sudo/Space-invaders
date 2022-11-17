@@ -4,8 +4,8 @@ import random
 width = 700
 height = 750
 fps = 120
-max_probability_of_shot = 1000
-enemy_speed_x = 0.33
+max_probability_of_shot = 1200
+enemy_speed_x = 0.3
 enemy_speed_y = 0.1
 gun_speed_x = 1
 bullet_speed = 5
@@ -252,8 +252,8 @@ def run():
     score.update_health_score()
     right_column = number_of_enemys_x
     left_column = 1
-    acceleration_y = 0.025
-    acceleration_x = 0.1
+    acceleration_y = 0.06
+    acceleration_x = 0.13
 
     while (True):
         clock.tick(fps)
