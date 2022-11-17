@@ -4,12 +4,11 @@ import random
 width = 700
 height = 750
 fps = 120
-max_probability_of_shot = 1200
-enemy_speed_x = 0.3
-enemy_speed_y = 0.1
+probability_of_shot = 1400
+enemy_speed = 0.5
 gun_speed_x = 1
 bullet_speed = 5
-enemy_bullet_speed = 1
+enemy_bullet_speed = 3
 
 
 class Statistics():
@@ -19,8 +18,14 @@ class Statistics():
         with open('highscore.txt', 'r') as file:
             self.highscore = int(file.readline())
 
-    def add_score(self):
-        self.score += 10
+    def add_score(self, type):
+        if type == 1:
+            self.score += 10
+        if type == 2:
+            self.score += 20
+        if type == 3:
+            self.score += 15
+            
 
 
 class Score():
@@ -130,11 +135,13 @@ class EnemyBullet():
 
 
 class Enemy():
-    def __init__(self, screen, type, enemy_x_default_position):
+    def __init__(self, screen, type, enemy_x_default_position, enemy_y_default_position):
         self.max_right = 1
         self.max_left = 1
         self.enemy_x_default_position = enemy_x_default_position
+        self.enemy_y_default_position = enemy_y_default_position
         self.screen = screen
+        self.type = type
         if type == 1:
             self.image = pygame.image.load('enemy1.png')
         if type == 2:
@@ -146,30 +153,36 @@ class Enemy():
         self.rect.y = self.rect.height
         self.x = float(self.rect.x)
         self.y = float(self.rect.y)
-        self.speed_y = enemy_speed_y
-        self.speed_x = enemy_speed_x
+        self.speed = enemy_speed
         self.can_go_left = True
+        self.can_go_down = False
 
     def draw_enemy(self):
         self.screen.blit(self.image, self.rect)
 
     def update_enemy_position(self):
+        if self.can_go_down and self.rect.y <= self.enemy_y_default_position + self.rect.height:
+            self.y += self.speed
+            self.rect.y = self.y
+            return
+        self.enemy_y_default_position = self.rect.y
+        self.can_go_down = False
         if self.can_go_left:
-            self.x += self.speed_x
+            self.x += self.speed
             self.rect.x = self.x
             if self.rect.x >= self.enemy_x_default_position + self.max_right * self.rect.width:
                 self.can_go_left = False
+                self.can_go_down = True
         else:
-            self.x -= self.speed_x
+            self.x -= self.speed
             self.rect.x = self.x
             if self.rect.x <= self.enemy_x_default_position - self.max_left * self.rect.width:
                 self.can_go_left = True
-        self.y += self.speed_y
-        self.rect.y = self.y
+                self.can_go_down = True
 
     def shoot(self, screen, enemy_bullets, monster_laser):
         probability_monster_shot = random.choice(
-            range(1, max_probability_of_shot))
+            range(1, probability_of_shot))
         if probability_monster_shot == 1:
             monster_laser.play()
             new_enemy_bullet = EnemyBullet(screen, self)
@@ -177,7 +190,7 @@ class Enemy():
 
 
 def create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y):
-    enemy = Enemy(screen, 1, 0)
+    enemy = Enemy(screen, 1, 0, 0)
     for enemys_number in range(number_of_enemys_y):
         enemys = []
         if (enemys_number == 0 or enemys_number == 1):
@@ -187,7 +200,8 @@ def create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y):
         if (enemys_number == 4 or enemys_number == 5):
             type = 1
         for enemy_number in range(number_of_enemys_x):
-            enemy = Enemy(screen, type, (1 + enemy_number) * enemy.rect.width)
+            enemy = Enemy(screen, type, (1 + enemy_number) *
+                          enemy.rect.width, (1 + enemys_number) * enemy.rect.height)
             enemy.x = (1 + enemy_number) * enemy.rect.width
             enemy.y = (1 + enemys_number) * enemy.rect.height
             enemy.rect.x = enemy.x
@@ -240,7 +254,7 @@ def run():
     statistics = Statistics()
     score = Score(screen, statistics)
     background_color = (0, 0, 0)
-    enemy = Enemy(screen, 1, 0)
+    enemy = Enemy(screen, 1, 0, 0)
     gun = Gun(screen)
     enemys_y = []
     bullets = []
@@ -252,8 +266,8 @@ def run():
     score.update_health_score()
     right_column = number_of_enemys_x
     left_column = 1
-    acceleration_y = 0.06
-    acceleration_x = 0.13
+    acceleration = 0.15
+    speed_factor = number_of_enemys / 2
 
     while (True):
         clock.tick(fps)
@@ -283,7 +297,6 @@ def run():
         gun.draw_gun()
         flag_shoot = False
         flag_range = False
-
         number_in_left_column = 0
         number_in_right_column = 0
 
@@ -322,25 +335,28 @@ def run():
                 continue
             for enemys in enemys_y:
                 for enemy in enemys:
+                    if enemy.type == 1:
+                        amandment = 2
+                    if enemy.type == 2:
+                        amandment = 10
+                    if enemy.type == 3:
+                        amandment = 5
                     if bullet.rect.top < enemy.rect.bottom and \
                        bullet.rect.top > enemy.rect.top and \
-                       bullet.rect.left > enemy.rect.left + 2 and \
-                       bullet.rect.right < enemy.rect.right - 2:
-                        statistics.add_score()
+                       bullet.rect.left > enemy.rect.left + amandment and \
+                       bullet.rect.right < enemy.rect.right - amandment:
+                        statistics.add_score(enemy.type)
                         score.check_highscore()
                         score.update_score()
                         enemys.remove(enemy)
                         bullets.remove(bullet)
                         number_of_enemys -= 1
-                        if number_of_enemys == 36 or number_of_enemys == 18 or \
-                           number_of_enemys == 9 or number_of_enemys == 3 or \
-                           number_of_enemys == 1:
+                        if number_of_enemys == speed_factor:
+                            speed_factor = int(speed_factor / 2)
                             for enemys in enemys_y:
                                 for enemy in enemys:
-                                    enemy.speed_y += acceleration_y
-                                    enemy.speed_x += acceleration_x
-                            acceleration_x *= 1.5
-                            acceleration_y *= 1.5
+                                    enemy.speed += acceleration
+                            acceleration *= 2
                         is_removed = True
                         break
                 if is_removed:
@@ -349,8 +365,8 @@ def run():
                 if is_removed:
                     break
                 if (bullet.rect.top < enemy_bullet.rect.bottom and \
-                   (bullet.rect.left > enemy_bullet.rect.left and bullet.rect.left < enemy_bullet.rect.right or
-                    bullet.rect.right < enemy_bullet.rect.right and bullet.rect.right > enemy_bullet.rect.left)):
+                   (bullet.rect.left > enemy_bullet.rect.left and bullet.rect.left < enemy_bullet.rect.right or \
+                   bullet.rect.right < enemy_bullet.rect.right and bullet.rect.right > enemy_bullet.rect.left)):
                     bullets.remove(bullet)
                     enemy_bullets.remove(enemy_bullet)
                     break
@@ -363,9 +379,9 @@ def run():
                 continue
             x = enemy_bullet.rect.centerx - gun.rect.left
             distance_to_gun = height - enemy_bullet.rect.bottom
-            if (distance_to_gun <= 0.05 * x * x + 9 and x > 0 and x < 24 or
-                distance_to_gun <= 43 and x >= 24 and x < 28 or
-                distance_to_gun <= 0.05 * (x - 50) * (x - 50) + 9 and x >= 28 and x < 50):
+            if (distance_to_gun <= 0.05 * x * x + 9 and x > 0 and x < 24 or \
+               distance_to_gun <= 43 and x >= 24 and x < 28 or \
+               distance_to_gun <= 0.05 * (x - 50) * (x - 50) + 9 and x >= 28 and x < 50):
                 explosion_sound.play(explosion)
                 game_over_sound.play(game_over)
                 flag_shoot = True
@@ -408,8 +424,8 @@ def run():
             left_column = 1
             gun.move_right = False
             gun.move_left = False
-            acceleration_y = 0.025
-            acceleration_x = 0.1
+            acceleration = 0.15
+            speed_factor = number_of_enemys_x * number_of_enemys_y / 2
             for enemys in enemys_y:
                 enemys.clear()
             enemys_y.clear()
@@ -429,4 +445,3 @@ def run():
 
 
 run()
-# 72 36 18 9 3 1
