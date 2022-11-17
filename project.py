@@ -6,7 +6,7 @@ height = 750
 fps = 120
 max_probability_of_shot = 1000
 enemy_speed_x = 0.33
-enemy_speed_y = 0.07
+enemy_speed_y = 0.1
 gun_speed_x = 1
 bullet_speed = 5
 enemy_bullet_speed = 1
@@ -406,6 +406,8 @@ def run():
             next_level.play()
             right_column = number_of_enemys_x
             left_column = 1
+            gun.move_right = False
+            gun.move_left = False
             acceleration_y = 0.025
             acceleration_x = 0.1
             for enemys in enemys_y:
