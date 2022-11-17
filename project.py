@@ -5,9 +5,9 @@ width = 700
 height = 750
 fps = 120
 max_probability_of_shot = 1000
-enemy_speed_x = 0.5
-enemy_speed_y = 0.0
-gun_speed_x = 0.7
+enemy_speed_x = 0.33
+enemy_speed_y = 0.07
+gun_speed_x = 1
 bullet_speed = 5
 enemy_bullet_speed = 1
 
@@ -16,9 +16,9 @@ class Statistics():
     def __init__(self):
         self.health = 3
         self.score = 0
+        with open('highscore.txt', 'r') as file:
+            self.highscore = int(file.readline())
 
-    def lose_health_point(self):
-        self.health -= 1
     def add_score(self):
         self.score += 10
 
@@ -31,22 +31,42 @@ class Score():
         self.color = (255, 255, 255)
         self.background_color = (0, 0, 0)
         self.font = pygame.font.SysFont('Monospaced', 36)
-        self.update_score(statistics)
+        self.guns = []
+        self.update_score()
 
-    def update_score(self, statistics):
-        self.score_image = self.font.render(str('SCORE: ' + str(statistics.score)), True, self.color)
+    def update_score(self):
+        self.score_image = self.font.render(
+            str('SCORE: ' + str(self.statistics.score)), True, self.color)
         self.score_rect = self.score_image.get_rect()
-        self.score_rect.right = self.screen_rect.right - 75
+        self.score_rect.centerx = self.screen_rect.centerx + 235
         self.score_rect.top = self.screen_rect.top + 15
-        
-        self.health_image = self.font.render(str('HEALTH: ' + str(statistics.health)), True, self.color)
-        self.health_rect = self.health_image.get_rect()
-        self.health_rect.left = self.screen_rect.left + 75
-        self.health_rect.top = self.screen_rect.top + 15
+
+        self.highscore_image = self.font.render(
+            str('HIGHSCORE: ' + str(self.statistics.highscore)), True, self.color)
+        self.highscore_rect = self.highscore_image.get_rect()
+        self.highscore_rect.centerx = self.screen_rect.centerx
+        self.highscore_rect.top = self.screen_rect.top + 15
+
+    def update_health_score(self):
+        self.guns.clear()
+        for gun_number in range(self.statistics.health):
+            gun = Gun(self.screen)
+            gun.rect.x = 30 + gun_number * gun.rect.width
+            gun.rect.top = self.screen_rect.top
+            self.guns.append(gun)
+
+    def check_highscore(self):
+        if self.statistics.score > self.statistics.highscore:
+            self.statistics.highscore = self.statistics.score
+            with open('highscore.txt', 'w') as file:
+                file.write(str(self.statistics.highscore))
 
     def draw_score(self):
         self.screen.blit(self.score_image, self.score_rect)
-        self.screen.blit(self.health_image, self.health_rect)
+        self.screen.blit(self.highscore_image, self.highscore_rect)
+        for gun in self.guns:
+            gun.draw_gun()
+
 
 class Gun():
     def __init__(self, screen):
@@ -97,7 +117,7 @@ class EnemyBullet():
         self.color = (255, 255, 255)
         self.speed = enemy_bullet_speed
         self.rect.centerx = enemy.rect.centerx
-        self.rect.top = enemy.rect.bottom
+        self.rect.centery = enemy.rect.centery
         self.y = float(self.rect.y)
 
     def update_bullet_position(self):
@@ -148,7 +168,8 @@ class Enemy():
         self.rect.y = self.y
 
     def shoot(self, screen, enemy_bullets, monster_laser):
-        probability_monster_shot = random.choice(range(1, max_probability_of_shot))
+        probability_monster_shot = random.choice(
+            range(1, max_probability_of_shot))
         if probability_monster_shot == 1:
             monster_laser.play()
             new_enemy_bullet = EnemyBullet(screen, self)
@@ -159,7 +180,12 @@ def create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y):
     enemy = Enemy(screen, 1, 0)
     for enemys_number in range(number_of_enemys_y):
         enemys = []
-        type = random.choice((1, 2, 3))
+        if (enemys_number == 0 or enemys_number == 1):
+            type = 2
+        if (enemys_number == 2 or enemys_number == 3):
+            type = 3
+        if (enemys_number == 4 or enemys_number == 5):
+            type = 1
         for enemy_number in range(number_of_enemys_x):
             enemy = Enemy(screen, type, (1 + enemy_number) * enemy.rect.width)
             enemy.x = (1 + enemy_number) * enemy.rect.width
@@ -169,13 +195,16 @@ def create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y):
             enemys.append(enemy)
         enemys_y.append(enemys)
 
+
 def lose_screen(screen):
     lose_font = pygame.font.SysFont('Monospaced', 72)
     lose_font_message = pygame.font.SysFont('Monospaced', 32)
     lose_color = (30, 230, 86)
     lose_screen = lose_font.render('GAME OVER', True, lose_color)
-    lose_screen_message_one = lose_font_message.render('PRESS SPACE TO EXIT', True, lose_color)
-    lose_screen_message_two = lose_font_message.render('PRESS R TO RESTART', True, lose_color)
+    lose_screen_message_one = lose_font_message.render(
+        'PRESS ESCAPE TO EXIT', True, lose_color)
+    lose_screen_message_two = lose_font_message.render(
+        'PRESS R TO RESTART', True, lose_color)
     lose_screen_rect = lose_screen.get_rect()
     lose_screen_message_one_rect = lose_screen_message_one.get_rect()
     lose_screen_message_two_rect = lose_screen_message_two.get_rect()
@@ -189,7 +218,8 @@ def lose_screen(screen):
     screen.blit(lose_screen, lose_screen_rect)
     screen.blit(lose_screen_message_one, lose_screen_message_one_rect)
     screen.blit(lose_screen_message_two, lose_screen_message_two_rect)
-    pygame.display.update()  
+    pygame.display.update()
+
 
 def run():
     pygame.init()
@@ -216,11 +246,14 @@ def run():
     bullets = []
     enemy_bullets = []
     number_of_enemys_x = int((width - 2 * enemy.rect.width) / enemy.rect.width)
-    number_of_enemys_y = int((height / 2) / enemy.rect.height)
+    number_of_enemys_y = int((height / 2) / enemy.rect.height) - 1
     number_of_enemys = number_of_enemys_x * number_of_enemys_y
     create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y)
+    score.update_health_score()
     right_column = number_of_enemys_x
     left_column = 1
+    acceleration_y = 0.025
+    acceleration_x = 0.1
 
     while (True):
         clock.tick(fps)
@@ -234,7 +267,7 @@ def run():
                     gun.move_right = True
                 if event.key == pygame.K_LEFT:
                     gun.move_left = True
-                if event.key == pygame.K_z or event.key == pygame.K_x:
+                if event.key == pygame.K_UP:
                     laser.play()
                     new_bullet = Bullet(screen, gun)
                     bullets.append(new_bullet)
@@ -253,6 +286,7 @@ def run():
 
         number_in_left_column = 0
         number_in_right_column = 0
+
         for enemys in enemys_y:
             for enemy in enemys:
                 if enemy.enemy_x_default_position == right_column * enemy.rect.width:
@@ -262,7 +296,7 @@ def run():
                 enemy.update_enemy_position()
                 enemy.draw_enemy()
                 enemy.shoot(screen, enemy_bullets, monster_laser)
-                if enemy.rect.bottom > gun.rect.top:
+                if enemy.rect.bottom > gun.rect.top + 15:
                     explosion.play()
                     game_over.play()
                     flag_range = 1
@@ -288,16 +322,25 @@ def run():
                 continue
             for enemys in enemys_y:
                 for enemy in enemys:
-                    if (bullet.rect.top < enemy.rect.bottom and
-                        bullet.rect.top > enemy.rect.top and
-                        bullet.rect.left > enemy.rect.left + 2 and
-                            bullet.rect.right < enemy.rect.right - 2):
-                        # -----------------------------------------
+                    if bullet.rect.top < enemy.rect.bottom and \
+                       bullet.rect.top > enemy.rect.top and \
+                       bullet.rect.left > enemy.rect.left + 2 and \
+                       bullet.rect.right < enemy.rect.right - 2:
                         statistics.add_score()
-                        score.update_score(statistics)
+                        score.check_highscore()
+                        score.update_score()
                         enemys.remove(enemy)
                         bullets.remove(bullet)
                         number_of_enemys -= 1
+                        if number_of_enemys == 36 or number_of_enemys == 18 or \
+                           number_of_enemys == 9 or number_of_enemys == 3 or \
+                           number_of_enemys == 1:
+                            for enemys in enemys_y:
+                                for enemy in enemys:
+                                    enemy.speed_y += acceleration_y
+                                    enemy.speed_x += acceleration_x
+                            acceleration_x *= 1.5
+                            acceleration_y *= 1.5
                         is_removed = True
                         break
                 if is_removed:
@@ -305,10 +348,9 @@ def run():
             for enemy_bullet in enemy_bullets:
                 if is_removed:
                     break
-                if bullet.rect.top < enemy_bullet.rect.bottom and \
-                    ((bullet.rect.left > enemy_bullet.rect.left and bullet.rect.left < enemy_bullet.rect.right) or
-                     (bullet.rect.right < enemy_bullet.rect.right and bullet.rect.right > enemy_bullet.rect.left)):
-                    # -----------------------------------------
+                if (bullet.rect.top < enemy_bullet.rect.bottom and \
+                   (bullet.rect.left > enemy_bullet.rect.left and bullet.rect.left < enemy_bullet.rect.right or
+                    bullet.rect.right < enemy_bullet.rect.right and bullet.rect.right > enemy_bullet.rect.left)):
                     bullets.remove(bullet)
                     enemy_bullets.remove(enemy_bullet)
                     break
@@ -321,15 +363,9 @@ def run():
                 continue
             x = enemy_bullet.rect.centerx - gun.rect.left
             distance_to_gun = height - enemy_bullet.rect.bottom
-            if (distance_to_gun <= 0.05 * x * x + 9 and x > 0 and x < 24):
-                explosion_sound.play(explosion)
-                game_over_sound.play(game_over)
-                flag_shoot = True
-            if (distance_to_gun <= 43 and x >= 24 and x < 28):
-                explosion_sound.play(explosion)
-                game_over_sound.play(game_over)
-                flag_shoot = True
-            if (distance_to_gun <= 0.05 * (x - 50) * (x - 50) + 9 and x >= 28 and x < 50):
+            if (distance_to_gun <= 0.05 * x * x + 9 and x > 0 and x < 24 or
+                distance_to_gun <= 43 and x >= 24 and x < 28 or
+                distance_to_gun <= 0.05 * (x - 50) * (x - 50) + 9 and x >= 28 and x < 50):
                 explosion_sound.play(explosion)
                 game_over_sound.play(game_over)
                 flag_shoot = True
@@ -339,17 +375,21 @@ def run():
 
         if flag_shoot:
             statistics.health -= 1
-            score.update_score(statistics)
+            score.update_score()
+            score.update_health_score()
             if statistics.health > 0:
                 bullets.clear()
                 enemy_bullets.clear()
                 flag_shoot = False
                 pygame.time.delay(1500)
                 pygame.event.clear()
+                gun.move_right = False
+                gun.move_left = False
         if flag_range or flag_shoot and statistics.health < 1:
             pygame.time.delay(1500)
             pygame.event.clear()
-            score.update_score(statistics)
+            score.update_score()
+            score.update_health_score()
             screen.fill(background_color)
             score.draw_score()
             lose_screen(screen)
@@ -358,7 +398,7 @@ def run():
                     if event.type == pygame.QUIT:
                         exit()
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_SPACE:
+                        if event.key == pygame.K_ESCAPE:
                             exit()
                         if event.key == pygame.K_r:
                             run()
@@ -366,10 +406,13 @@ def run():
             next_level.play()
             right_column = number_of_enemys_x
             left_column = 1
+            acceleration_y = 0.025
+            acceleration_x = 0.1
             for enemys in enemys_y:
                 enemys.clear()
             enemys_y.clear()
-            create_army(screen, enemys_y, number_of_enemys_x, number_of_enemys_y)
+            create_army(screen, enemys_y, number_of_enemys_x,
+                        number_of_enemys_y)
             bullets.clear()
             enemy_bullets.clear()
             number_of_enemys = number_of_enemys_x * number_of_enemys_y
@@ -380,8 +423,8 @@ def run():
             pygame.display.update()
             pygame.time.delay(1500)
             pygame.event.clear()
-
         pygame.display.update()
 
 
 run()
+# 72 36 18 9 3 1
