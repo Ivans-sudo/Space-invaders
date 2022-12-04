@@ -76,7 +76,7 @@ class Score():
 class Gun():
     def __init__(self, screen):
         self.screen = screen
-        self.image = pygame.image.load('gun.png')
+        self.image = pygame.image.load('textures/gun.png')
         self.rect = self.image.get_rect()
         self.screen_rect = screen.get_rect()
         self.rect.centerx = self.screen_rect.centerx
@@ -143,11 +143,11 @@ class Enemy():
         self.screen = screen
         self.type = type
         if type == 1:
-            self.image = pygame.image.load('enemy1.png')
+            self.image = pygame.image.load('textures/enemy1.png')
         if type == 2:
-            self.image = pygame.image.load('enemy2.png')
+            self.image = pygame.image.load('textures/enemy2.png')
         if type == 3:
-            self.image = pygame.image.load('enemy3.png')
+            self.image = pygame.image.load('textures/enemy3.png')
         self.rect = self.image.get_rect()
         self.rect.x = self.rect.width
         self.rect.y = self.rect.height
@@ -243,12 +243,12 @@ def run():
     game_over_sound = pygame.mixer.Channel(1)
     pygame.mixer.set_num_channels(16)
     pygame.mixer.music.set_volume(0.33)
-    laser = pygame.mixer.Sound('laser.mp3')
-    monster_laser = pygame.mixer.Sound('monster_laser.mp3')
-    game_over = pygame.mixer.Sound('game_over.mp3')
-    explosion = pygame.mixer.Sound('explosion.mp3')
-    next_level = pygame.mixer.Sound('next_level.mp3')
-    pygame.mixer.music.load('bgmusic.mp3')
+    laser = pygame.mixer.Sound('audio/laser.mp3')
+    monster_laser = pygame.mixer.Sound('audio/monster_laser.mp3')
+    game_over = pygame.mixer.Sound('audio/game_over.mp3')
+    explosion = pygame.mixer.Sound('audio/explosion.mp3')
+    next_level = pygame.mixer.Sound('audio/next_level.mp3')
+    pygame.mixer.music.load('audio/bgmusic.mp3')
     pygame.mixer.music.play(-1)
     clock = pygame.time.Clock()
     statistics = Statistics()
