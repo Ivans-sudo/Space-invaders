@@ -3,10 +3,7 @@ from gun import Gun, Bullet
 from func import create_army, lose_screen
 from stats import Score, Statistics
 from enemys import Enemy
-
-width = 700
-height = 750
-fps = 120
+from globals import width, height, fps
 
 
 def run():

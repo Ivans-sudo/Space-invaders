@@ -1,13 +1,13 @@
 import pygame
 import random
-
+from globals import enemy_bullet_speed, enemy_speed, probability_of_shot
 
 class EnemyBullet():
     def __init__(self, screen, enemy):
         self.screen = screen
         self.rect = pygame.Rect(0, 0, 2, 12)
         self.color = (255, 255, 255)
-        self.speed = 3
+        self.speed = enemy_bullet_speed
         self.rect.centerx = enemy.rect.centerx
         self.rect.centery = enemy.rect.centery
         self.y = float(self.rect.y)
@@ -40,7 +40,7 @@ class Enemy():
         self.rect.y = self.rect.height
         self.x = float(self.rect.x)
         self.y = float(self.rect.y)
-        self.speed = 0.5
+        self.speed = enemy_speed
         self.can_go_left = True
         self.can_go_down = False
 
@@ -69,7 +69,7 @@ class Enemy():
 
     def shoot(self, screen, enemy_bullets, monster_laser):
         probability_monster_shot = random.choice(
-            range(1, 1400))
+            range(1, probability_of_shot))
         if probability_monster_shot == 1:
             monster_laser.play()
             new_enemy_bullet = EnemyBullet(screen, self)

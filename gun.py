@@ -1,4 +1,5 @@
 import pygame
+from globals import gun_speed, gun_bullet_speed
 
 class Gun():
     def __init__(self, screen):
@@ -17,9 +18,9 @@ class Gun():
 
     def update_gun_position(self):
         if self.move_right and self.rect.right < self.screen_rect.right:
-            self.center += 1
+            self.center += gun_speed
         if self.move_left and self.rect.left > self.screen_rect.left:
-            self.center -= 1
+            self.center -= gun_speed
         self.rect.centerx = self.center
 
 
@@ -28,7 +29,7 @@ class Bullet():
         self.screen = screen
         self.rect = pygame.Rect(0, 0, 2, 12)
         self.color = (30, 230, 86)
-        self.speed = 5
+        self.speed = gun_bullet_speed
         self.rect.centerx = gun.rect.centerx
         self.rect.top = gun.rect.top
         self.y = float(self.rect.y)
