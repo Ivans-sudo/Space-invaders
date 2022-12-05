@@ -16,13 +16,16 @@ python3 run.py
 - __Цель__
   Цель игры - набрать как можно больше очков, убивая монстров, пока они не дошли до пушки, или не попали по ней.
   <br>
-  <img src="textures/m10.png" width="75" float="left"> 
+  <img src="textures/m10.png" width="75" float="left">
+  <br>
       - 10 очков
   <br>
   <img src="textures/m15.png" width="75" float="left">
+  <br>
       - 15 очков 
   <br>
   <img src="textures/m20.png" width="75" float="left">
+  <br>
       - 20 очков:
   <br>
 # Полное описание:
